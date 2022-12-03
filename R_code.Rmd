@@ -1,0 +1,522 @@
+---
+title: "R code for statistical calculation"
+author: "Cheng Gong"
+date: "2022/12/3"
+output: html_document
+---
+# Packages used in this project
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(cowplot)
+library(jjAnno)
+library(emmeans)
+library(lme4)
+```
+
+# Figure 2
+
+barplot for isotopic values
+
+```{r bar_plot_iso}
+two_isomodel <- two_isomodel %>%
+  mutate(xl = paste(city, Sample, sep = "_"))
+
+fig_ison_bar <- ggplot(data = two_isomodel %>% filter(isotope == "15N"), 
+                       aes(x = xl, y = emmean)) + 
+  geom_bar(aes(fill = landtype), position = "dodge", stat = "identity", width = 0.5) + 
+  geom_errorbar(aes(ymin = emmean-SE, ymax = emmean + SE, group = landtype), 
+                position = position_dodge(0.5), width = 0.2, size = 1) + 
+  scale_y_continuous(limits = c(0.0, 13), breaks = seq(0, 12.5, by = 2.5),
+                     expand = expansion(mult = c(0, 0.05))) + 
+  scale_fill_npg() + 
+  scale_color_npg() + 
+  coord_cartesian(clip = "off") + 
+  labs(x = "", y = latex2exp::TeX("$\\delta^{15}N$ (‰)"))+
+  theme_cowplot() + 
+  theme(axis.text.y = element_text(size = 20),
+        axis.text.x = element_blank(),
+        axis.title.y = element_text(size = 25),
+        axis.ticks.length.x = unit(0, "cm"),
+        axis.line = element_line(color = "black"),
+        legend.position = "none")
+
+fig_ison_bar <- annoRect(fig_ison_bar, annoPos = "top", annoManual = TRUE,
+                        xPosition = list(c(0.6, 2.5), c(2.3, 4.2)),
+                        yPosition = c(13, 13.7), 
+                        pFill = rep("#97FFFF", 2),
+                        pCol = rep("#97FFFF", 2),
+                        alpha = 0.5,
+                        addText = TRUE, 
+                        textLabel = c("Beijing", "Shenzhen"),
+                        textCol = rep("black",2), 
+                        fontface = rep("bold", 2),
+                        vjust = 0.6,
+                        textSize = 18)
+
+fig_ison_bar <- annoRect(fig_ison_bar, annoPos = "top", annoManual = TRUE,
+                         xPosition = list(c(0.6, 1.6, 2.5, 3.5), c(1.3, 2.3, 3.2, 4.2)),
+                         yPosition = c(12.3, 13),
+                         pFill = c("#C1FFC1", "#FFDEAD", "#C1FFC1", "#FFDEAD"),
+                         pCol = c("#C1FFC1", "#FFDEAD", "#C1FFC1", "#FFDEAD"),
+                         alpha = 0.5, 
+                         addText = TRUE, 
+                         textLabel = rep(c("Leaves", "Soil"), 2),
+                         textCol = rep("black", 4),
+                         fontface = rep("bold", 4),
+                         vjust = 1,
+                         textSize = 15)
+
+fig_isoo_bar <- ggplot(data = two_isomodel %>% filter(isotope == "18O"), 
+                       aes(x = xl, y = emmean)) + 
+  geom_bar(aes(fill = landtype), position = "dodge", stat = "identity", width = 0.5) + 
+  geom_errorbar(aes(ymin = emmean-SE, ymax = emmean + SE, group = landtype), 
+                position = position_dodge(0.5), width = 0.2, size = 1) + 
+  scale_y_continuous(limits = c(0.0, 40), breaks = seq(0.0, 35.0, by = 5),
+                     expand = expansion(mult = c(0, 0.05)),
+                     labels = number_format(accuracy = 0.1)) + 
+  scale_fill_npg() + 
+  scale_color_npg() + 
+  coord_cartesian(clip = "off") + 
+  labs(x = "", y = latex2exp::TeX("$\\delta^{18}O$ (‰)"))+
+  theme_cowplot() + 
+  theme(axis.text.y = element_text(size = 20),
+        axis.text.x = element_blank(),
+        axis.title.y = element_text(size = 25),
+        axis.ticks.length.x = unit(0, "cm"),
+        axis.line = element_line(color = "black"),
+        legend.position = "bottom")
+
+fig_isoo_bar <- annoRect(fig_isoo_bar, annoPos = "top", annoManual = TRUE,
+                        xPosition = list(c(0.6, 2.5), c(2.3, 4.2)),
+                        yPosition = c(39.5, 42), 
+                        pFill = rep("#97FFFF", 2),
+                        pCol = rep("#97FFFF", 2),
+                        alpha = 0.5,
+                        addText = TRUE, 
+                        textLabel = c("Beijing", "Shenzhen"),
+                        textCol = rep("black",2), 
+                        fontface = rep("bold", 2),
+                        vjust = 0.6,
+                        textSize = 18)
+
+fig_isoo_bar <-  annoRect(fig_isoo_bar, annoPos = "top", annoManual = TRUE,
+                         xPosition = list(c(0.6, 1.6, 2.5, 3.5), c(1.3, 2.3, 3.2, 4.2)),
+                         yPosition = c(36.5, 39.5),
+                         pFill = c("#C1FFC1", "#FFDEAD", "#C1FFC1", "#FFDEAD"),
+                         pCol = c("#C1FFC1", "#FFDEAD", "#C1FFC1", "#FFDEAD"),
+                         alpha = 0.5, 
+                         addText = TRUE, 
+                         textLabel = rep(c("Leaves", "Soil"), 2),
+                         textCol = rep("black", 4),
+                         fontface = rep("bold", 4),
+                         vjust = 1,
+                         textSize = 15)
+
+
+bar_legend <- get_legend(fig_isoo_bar)
+fig_isotope_compare <- plot_grid(fig_ison_bar, 
+                                 fig_isoo_bar + theme(legend.position = "none"),
+                                 align = "v", 
+                                 labels = c("A", "B"),
+                                 label_size = 25,
+                                 ncol = 1)
+fig_isotope_compare <- plot_grid(fig_isotope_compare, bar_legend, 
+                                 ncol = 1, rel_heights = c(1, 0.1))
+ggsave(fig_isotope_compare, 
+       filename = "./figure/fig_isotope_compare.tiff", 
+       height = 25,
+       width = 30,
+       dpi = 300,
+       units = "cm",
+       limitsize = FALSE)
+```
+
+# Figure 3
+barplot for TN
+```{r draw_element_bar}
+fig_element_bar <- ggplot(data = two_elemodel, 
+                       aes(x = xl, y = emmean)) + 
+  geom_bar(aes(fill = landtype), position = "dodge", stat = "identity", width = 0.5) + 
+  geom_errorbar(aes(ymin = emmean-SE, ymax = emmean + SE, group = landtype), 
+                position = position_dodge(0.5), width = 0.2, size = 1) + 
+  scale_y_continuous(limits = c(0.0, 3.5), breaks = seq(0, 3.5, by = 0.5),
+                     expand = expansion(mult = c(0, 0.05))) + 
+  scale_fill_npg() + 
+  scale_color_npg() + 
+  coord_cartesian(clip = "off") + 
+  labs(x = "", y = latex2exp::TeX("$N$ (%)"))+
+  theme_cowplot() + 
+  theme(axis.text.y = element_text(size = 20),
+        axis.text.x = element_blank(),
+        axis.title.y = element_text(size = 25),
+        axis.ticks.length.x = unit(0, "cm"),
+        axis.line = element_line(color = "black"),
+        legend.position = "bottom")
+
+# anonate facet 
+fig_element_bar <- annoRect(fig_element_bar, annoPos = "top", annoManual = TRUE,
+                        xPosition = list(c(0.6, 2.5), c(2.3, 4.2)),
+                        yPosition = c(3.55, 3.7), 
+                        pFill = rep("#97FFFF", 2),
+                        pCol = rep("#97FFFF", 2),
+                        alpha = 0.5,
+                        addText = TRUE, 
+                        textLabel = c("Beijing", "Shenzhen"),
+                        textCol = rep("black",2), 
+                        fontface = rep("bold", 2),
+                        vjust = 2.3,
+                        textSize = 18)
+
+fig_element_bar <- annoRect(fig_element_bar, annoPos = "top", annoManual = TRUE,
+                         xPosition = list(c(0.6, 1.6, 2.5, 3.5), c(1.3, 2.3, 3.2, 4.2)),
+                         yPosition = c(3.4, 3.55),
+                         pFill = c("#C1FFC1", "#FFDEAD", "#C1FFC1", "#FFDEAD"),
+                         pCol = c("#C1FFC1", "#FFDEAD", "#C1FFC1", "#FFDEAD"),
+                         alpha = 0.5, 
+                         addText = TRUE, 
+                         textLabel = rep(c("Leaves", "Soil"), 2),
+                         textCol = rep("black", 4),
+                         fontface = rep("bold", 4),
+                         vjust = 2.5,
+                         textSize = 15)
+
+ggsave(fig_element_bar, 
+       filename = "./figure/fig_element_bar.tiff", 
+       height = 18,
+       width = 30,
+       dpi = 300,
+       units = "cm",
+       limitsize = FALSE)
+```
+
+Figure 4
+
+Correlation between istopic values and road distance
+
+```{r draw_graph}
+# d15N ~ dtr
+fig_isodtr <- ggplot(data = iso_dtr, aes(x = dtr, y = d15N, group = city)) + 
+  geom_point(aes(color = city), size = 2, alpha = 0.7) + 
+  geom_smooth(aes(color = city), method = "lm", lwd = 1.5, alpha = 0.3) + 
+  scale_y_continuous(limits = c(-2, 14)) + 
+  scale_color_lancet() + 
+  labs(x = "",
+       y = latex2exp::TeX("$\\delta^{15}N$ (‰)")) + 
+  theme_cowplot() + 
+  theme(axis.text.y = element_text(size = 20),
+        axis.text.x = element_text(size = 20),
+        axis.title= element_text(size = 25),
+        axis.line = element_line(color = "black"),
+        legend.position = "none")
+# add annonate
+fig_isodtr <- annoRect(fig_isodtr, annoManual = TRUE, 
+                       xPosition = list(c(0, 140), c(130, 500)),
+                       yPosition = c(13.5, 15), 
+                       pCol = c("#00468BFF", "#ED0000FF"),
+                       pFill = c("#00468BFF", "#ED0000FF"),
+                       alpha = 0.5, 
+                       addText = TRUE, 
+                       textLabel = c("Beijing", "Shenzhen"),
+                       textCol = c("black", "black"),
+                       fontface = c("bold", "bold"),
+                       textSize = 15,
+                       vjust = 0.7)
+
+fig_isodtro <- ggplot(data = iso_dtr, aes(x = dtr, y = d18O, group = city)) + 
+  geom_point(aes(color = city), size = 2, alpha = 0.7) + 
+  geom_smooth(aes(color = city), method = "lm", lwd = 1.5, alpha = 0.3) + 
+  scale_y_continuous(limits = c(20, 40)) + 
+  scale_color_lancet() + 
+  labs(x = "",
+       y = latex2exp::TeX("$\\delta^{18}O$ (‰)")) + 
+  theme_cowplot() + 
+  theme(axis.text.y = element_text(size = 20),
+        axis.text.x = element_text(size = 20),
+        axis.title= element_text(size = 25),
+        axis.line = element_line(color = "black"),
+        legend.position = "none")
+
+fig_eledtrn <- ggplot(data = ele_dtr, aes(x = dtr, y = N, group = city)) + 
+  geom_point(aes(color = city), size = 2, alpha = 0.7) + 
+  geom_smooth(aes(color = city), method = "lm", lwd = 1.5, alpha = 0.3) + 
+  scale_y_continuous(limits = c(1, 4)) + 
+  scale_color_lancet() + 
+  labs(x = "Distance to road (m)",
+       y = latex2exp::TeX("$N$ (‰)")) + 
+  theme_cowplot() + 
+  theme(axis.text.y = element_text(size = 20),
+        axis.text.x = element_text(size = 20),
+        axis.title= element_text(size = 25),
+        axis.line = element_line(color = "black"),
+        legend.position = "none")
+
+fig_twodtr <- plot_grid(fig_isodtr, fig_isodtro, fig_eledtrn,
+                        align = "v",nrow =3, ncol = 1, label_size = 25,
+                        labels = c("A", "B", "C"))
+
+ggsave(fig_twodtr, 
+       filename = "./figure/fig_twodtr.tiff", 
+       height = 30,
+       width = 25,
+       dpi = 300,
+       units = "cm",
+       limitsize = FALSE)  
+```
+
+Figure 5
+
+Ea/Ei between two cities
+
+```{r visual_eaei_bj}
+fig_evabj <- ggplot(data = eva_dfbj_road, aes(x = d_lb, y = evr, group = f)) + 
+  geom_point(aes(color = f), size = 2.5, alpha = 1) + 
+  geom_smooth(aes(group = f, color = f),method = "lm", se = F) + 
+  scale_y_continuous(limits = c(0, 0.6)) + 
+  scale_x_continuous(limits = c(30, 38)) + 
+  scale_color_manual(values = rev(c("#ED0400", "#DB570B", "#F7C72A", 
+                     "#24E1F2", "#00AAFF", "#1A28EB", "#8800FF"))) + 
+  labs(x = latex2exp::TeX("$\\delta^{18}O_{leaf}$(‰)"),
+       y = latex2exp::TeX("$e_a/e_i$")) + 
+  theme_cowplot() + 
+  theme(axis.text = element_text(size = 20),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.line = element_line(color = "black"),
+        legend.position = c(0.85, 0.8),
+        legend.text = element_text(size = 15),
+        legend.title = element_text(size = 15))
+```
+
+```{r visual_eaei_sz}
+fig_evasz <- ggplot(data = eva_dfsz_park, aes(x = d_lb, y = evr, group = f)) + 
+  geom_point(aes(color = f), size = 1.5) + 
+  geom_smooth(aes(group = f, color = f),method = "lm", se = F) + 
+  scale_y_continuous(limits = c(0, 0.8)) + 
+  scale_x_continuous(limits = c(21, 28)) + 
+  scale_color_manual(values = rev(c("#ED0400", "#DB570B", "#F7C72A", 
+                     "#24E1F2", "#00AAFF", "#1A28EB", "#8800FF"))) +
+  labs(x = latex2exp::TeX("$\\delta^{18}O_{leaf}$(‰)"),
+       y = latex2exp::TeX("$e_a/e_i$")) + 
+  theme_cowplot() + 
+  theme(axis.text = element_text(size = 20),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.line = element_line(color = "black"),
+        legend.position = "none",
+        legend.text = element_text(size = 15),
+        legend.title = element_blank())
+```
+
+```{r visual_sz_cmpare_eaei}
+fig_evatwocmp <- ggplot(data = eva_dftwo_cmp, 
+                        aes(x = f, y = evr, group = city, color = city)) + 
+  geom_point(size = 2.5) + 
+  geom_line(aes(color = city), size = 1) + 
+  scale_y_continuous(limits = c(0, 0.8)) + 
+  scale_color_lancet() + 
+  labs(x = latex2exp::TeX("$f$"),
+       y = latex2exp::TeX("$e_a/e_i$")) +
+  theme_cowplot() + 
+  theme(axis.text = element_text(size = 20),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.line = element_line(color = "black"),
+        legend.position = c(0.85, 0.2),
+        legend.text = element_text(size = 15),
+        legend.title = element_blank())
+```
+```{r eva_grid}
+fig_evagrid <- plot_grid(fig_evabj, fig_evasz, fig_evatwocmp,
+                         align = "v", axis = "l", labels = LETTERS[1:3],
+                         label_size = 25)
+
+ggsave(fig_evagrid, 
+       file = "./figure/fig_evagrid.tiff",
+       width = 40,
+       height = 28, 
+       limitsize = FALSE,
+       units = "cm")
+```
+
+Figure 6
+
+Ea/Ei under different green land types
+
+```{r visual_bj_cmpare_eaei}
+fig_evabjcmp <- ggplot(data = eva_dfbj_cmp, aes(x = f, y = evr, group = type, color = type)) + 
+  geom_point(size = 2.5) + 
+  geom_line(aes(color = type), size  =1) + 
+  scale_y_continuous(limits = c(0, 0.5)) +
+  scale_color_lancet() + 
+  labs(x = latex2exp::TeX("$f$"),
+       y = latex2exp::TeX("$e_a/e_i$")) +
+  theme_cowplot() + 
+  theme(axis.text = element_text(size = 20),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.line = element_line(color = "black"),
+        legend.position = c(0.85, 0.2),
+        legend.text = element_text(size = 15),
+        legend.title = element_blank())
+#ABFFEB
+fig_evabjcmp <- annoRect(fig_evabjcmp, 
+                         annoPos = "top",
+                         xPosition = 0.7,
+                         yPosition = c(0.49, 0.6),
+                         pCol = "#FFE46B",
+                         pFill = "#FFE46B",
+                         alpha = 0.5)
+  
+```
+
+```{r visual_sz_cmpare_eaei}
+fig_evaszcmp <- ggplot(data = eva_dfsz_cmp, aes(x = f, y = evr, group = type, color = type)) + 
+  geom_point(size = 2.5) + 
+  geom_line(aes(color = type), size = 1) + 
+  scale_y_continuous(limits = c(0, 0.8)) + 
+  scale_color_lancet() + 
+  labs(x = latex2exp::TeX("$f$"),
+       y = latex2exp::TeX("$e_a/e_i$")) +
+  theme_cowplot() + 
+  theme(axis.text = element_text(size = 20),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.line = element_line(color = "black"),
+        legend.position = c(0.85, 0.2),
+        legend.text = element_text(size = 15),
+        legend.title = element_blank())
+
+fig_evaszcmp <- annoRect(fig_evaszcmp, 
+                         annoPos = "top",
+                         xPosition = 0.7,
+                         yPosition = c(0.79, 0.85),
+                         pCol = "#FFE46B",
+                         pFill = "#FFE46B",
+                         alpha = 0.5)
+  
+```
+
+
+```{r fig_evatwocmp}
+fig_evalandtype <- plot_grid(fig_evabjcmp, fig_evaszcmp, labels = c("A", "B"), 
+                             align = "v", axis = "l", label_size = 25)
+ggsave(fig_evalandtype, 
+       file = "./figure/fig_evalandtype.tiff",
+       width = 40,
+       height = 14, 
+       limitsize = FALSE,
+       units = "cm",
+       dpi = 300)
+```
+
+Figure 7
+
+Comparison of the isotopic signal of leaves and potential sources
+
+```{r d15n_sources_errorbar}
+fig_d15nsources <- ggplot(data = all_nsources, aes(x = city, y = d15n)) + 
+  geom_point(aes(color = source), position = position_dodge(0.5), size = 3.5) + 
+  geom_errorbar(aes(ymax = d15n + sd, ymin = d15n - sd, color = source), 
+                width = 0, size = 1, position = position_dodge(0.5)) + 
+  geom_stripped_cols() + 
+  labs(x = "", y = latex2exp::TeX("$\\delta^{15}$N(‰)")) + 
+  coord_flip() + 
+  scale_color_lancet(labels = c("Leaves(road)", "Leaves(park)",
+                                  expression(Precipitation(NH[4])),
+                                  expression(Precipitation(NO[3])),
+                                  "Dry deposition", "Soil")) + 
+  scale_y_continuous(limits = c(-12, 20)) + 
+  theme_cowplot() + 
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 25),
+        axis.ticks.length.y = unit(0, "cm"),
+        axis.line = element_line(color = "black"),
+        legend.position = c(0.8, 0.7),
+        legend.text = element_text(size = 15),
+        legend.title = element_blank())
+
+fig_d15nsources <- annoRect(fig_d15nsources, 
+                            yPosition = c(-14, -12.5), 
+                            xPosition = c(1:2),
+                            rectWidth = 1,
+                            pFill = c("#FFE46B", "#ABFFEB"),
+                            pCol = c("#FFE46B", "#ABFFEB"),
+                            alpha = 1,
+                            addText = TRUE, 
+                            textLabel = c("Beijing", "Shenzhen"),
+                            textCol = c("black", "black"),
+                            textSize = 15,
+                            fontface = c("bold", "bold"),
+                            vjust = 0.5, textRot = 90)
+  
+ ggsave(fig_d15nsources, 
+       filename = "./figure/fig_d15nsources.tiff", 
+       height = 25,
+       width = 27,
+       dpi = 300,
+       units = "cm",
+       limitsize = FALSE)  
+```
+
+```{r d18o_sources_errorbar}
+fig_d18osources <- ggplot(data = all_osources, aes(x = city, y = d18o)) + 
+  geom_point(aes(color = source), position = position_dodge(0.5), size = 3.5) + 
+  geom_errorbar(aes(ymax = d18o + sd, ymin = d18o - sd, color = source), 
+                width = 0, size = 1, position = position_dodge(0.5)) + 
+  geom_stripped_cols() + 
+  labs(x = "", y = latex2exp::TeX("$\\delta^{18}$O(‰)")) + 
+  coord_flip() + 
+  scale_color_lancet(labels = c("Leaves(road)", "Leaves(park)",
+                                  "Soil water", "Precipitation")) + 
+  scale_y_continuous(limits = c(-15, 40), breaks = c(-10, 0, 10, 20, 30, 40)) + 
+  theme_cowplot() + 
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 25),
+        axis.ticks.length.y = unit(0, "cm"),
+        axis.line = element_line(color = "black"),
+        legend.position = c(0.85, 0.7),
+        legend.text = element_text(size = 15),
+        legend.title = element_blank())
+
+fig_d18osources <- annoRect(fig_d18osources, 
+                            yPosition = c(-18, -15.8), 
+                            xPosition = c(1:2),
+                            rectWidth = 1,
+                            pFill = c("#FFE46B", "#ABFFEB"),
+                            pCol = c("#FFE46B", "#ABFFEB"),
+                            alpha = 1,
+                            addText = TRUE, 
+                            textLabel = c("Beijing", "Shenzhen"),
+                            textCol = c("black", "black"),
+                            textSize = 15,
+                            fontface = c("bold", "bold"),
+                            vjust = 0.5, textRot = 90)
+
+  
+ ggsave(fig_d18osources, 
+       filename = "./figure/fig_d18osources.tiff", 
+       height = 25,
+       width = 27,
+       dpi = 300,
+       units = "cm",
+       limitsize = FALSE)  
+```
+
+```{r sources_dual}
+fig_dualsources <- plot_grid(fig_d15nsources, fig_d18osources,
+                             align = "v", axis = "l", 
+                             nrow = 2, ncol = 1, labels = c("A", "B"), 
+                             label_size = 25,
+                             hjust = 0)
+ggsave(fig_dualsources,
+       filename = "./figure/fig_dualsources.tiff",
+       height = 45,
+       width = 28,
+       dpi = 300,
+       units = "cm",
+       limitsize = FALSE)
+```
+
